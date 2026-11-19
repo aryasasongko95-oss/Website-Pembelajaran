@@ -204,14 +204,22 @@ document.addEventListener('click', e => {
     scrollTo(0, y);
   }
 
-  else if ('back' in d) {
+else if ('back' in d) {
+  if (history.state?.edupediaViewer) {
+    history.back();
+  } else {
     closeViewer();
+  }
+}
+else if ('home' in d) {
+  store.set('lastMedia', null);
+
+  if (history.state?.edupediaViewer) {
+    history.back();
   }
 
-  else if ('home' in d) {
-    closeViewer();
-    go('dashboard');
-  }
+  go('dashboard');
+}
 
   else if (d.es) {
     editing = {

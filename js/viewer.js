@@ -39,13 +39,11 @@ async function openMedia(id) {
   v.className = 'viewer';
   v.id = 'viewer';
   v.dataset.id = m.id;
-if (!history.state?.edupediaViewer) {
-  history.pushState(
-    { edupediaViewer: true },
-    '',
-    location.href
-  );
-}
+history.pushState(
+  { edupediaViewer: true },
+  '',
+  location.href
+);
   addRecent(m.id);
 
   store.set('lastMedia', m.id);
