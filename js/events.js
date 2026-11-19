@@ -683,17 +683,6 @@ render();
 
 });
 
-/* ---------- Sinkronisasi Setelah Upload Dokumen ---------- */
-
-/* ---------- Sinkronisasi Setelah Upload Dokumen ---------- */
-
-if (
-  documentFile &&
-  typeof window.loadOnlineMedia === 'function'
-) {
-  await window.loadOnlineMedia();
-}
-
 /* ---------- Toggle Sidebar ---------- */
 
 $('#tg').onclick = () => {
