@@ -61,11 +61,16 @@ const persist = () => {
 };
 
 /* ---------- Database Online ---------- */
-
+let onlineMediaSyncRunning = false;
 window.loadOnlineMedia = function() {
   return new Promise(resolve => {
-    const callbackName = 'eduPediaCallback_' + Date.now();
-    const script = document.createElement('script');
+
+    if (onlineMediaSyncRunning) {
+      resolve(false);
+      return;
+    }
+
+    onlineMediaSyncRunning = true;
 
    script.src =
   'https://script.google.com/macros/s/AKfycbwcvSbavl3tjOuzfrhEYBB5WPwOceEz9Q3Uvp65HYVNe5A-0fZSAyZ1IT3MwgruPoPh7Q/exec' +
@@ -146,7 +151,8 @@ window.loadOnlineMedia = function() {
 
       delete window[callbackName];
       script.remove();
-      resolve();
+      onlineMediaSyncRunning = false;
+      resolve(); 
     };
 
     script.onerror = function() {
@@ -154,6 +160,7 @@ window.loadOnlineMedia = function() {
       script.remove();
 
       console.error('Gagal memuat database online');
+      onlineMediaSyncRunning = false;
       resolve();
     };
 

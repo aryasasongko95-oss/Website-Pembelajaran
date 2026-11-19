@@ -676,11 +676,23 @@ document.addEventListener('submit', async e => {
 
   /* ---------- Selesai ---------- */
 
-  editing = null;
+editing = null;
 
-  persist();
-  render();
+persist();
+render();
+
 });
+
+/* ---------- Sinkronisasi Setelah Upload Dokumen ---------- */
+
+/* ---------- Sinkronisasi Setelah Upload Dokumen ---------- */
+
+if (
+  documentFile &&
+  typeof window.loadOnlineMedia === 'function'
+) {
+  await window.loadOnlineMedia();
+}
 
 /* ---------- Toggle Sidebar ---------- */
 
@@ -892,7 +904,7 @@ history.replaceState({
   selectedCategory
 }, '', location.href);
 
-/* ---------- Render Awal ---------- */
+/* ---------- Render Awal dan Sinkronisasi Otomatis ---------- */
 
 loading(async () => {
   if (typeof window.loadOnlineMedia === 'function') {
@@ -900,4 +912,32 @@ loading(async () => {
   }
 
   render();
+
+  // Sinkronisasi otomatis setiap 10 detik
+  if (window.__eduPediaSyncTimer) {
+    clearInterval(window.__eduPediaSyncTimer);
+  }
+
+  window.__eduPediaSyncTimer = setInterval(() => {
+    if (
+      document.visibilityState === 'visible' &&
+      typeof window.loadOnlineMedia === 'function'
+    ) {
+      window.loadOnlineMedia();
+    }
+  }, 10000);
+
+  // Sinkronisasi ketika kembali membuka tab
+  if (!window.__eduPediaVisibilityListener) {
+    window.__eduPediaVisibilityListener = true;
+
+    document.addEventListener('visibilitychange', () => {
+      if (
+        document.visibilityState === 'visible' &&
+        typeof window.loadOnlineMedia === 'function'
+      ) {
+        window.loadOnlineMedia();
+      }
+    });
+  }
 });
