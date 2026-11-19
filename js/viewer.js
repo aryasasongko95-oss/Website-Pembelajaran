@@ -387,9 +387,12 @@ history.pushState(
 
   /* ---------- File Online / Google Drive ---------- */
 
+
 /* ---------- WEB Online dari Google Drive ---------- */
 
 if (String(m.category || '').toUpperCase() === 'WEB') {
+
+  const objectUrls = [];
 
   try {
 
@@ -403,7 +406,7 @@ if (String(m.category || '').toUpperCase() === 'WEB') {
 
     toast('Mengambil paket WEB dari Google Drive...');
 
-    // Ambil ID file dari URL Google Drive
+    // Ambil ID ZIP dari URL Google Drive
     const match = String(m.url || '').match(
       /\/d\/([a-zA-Z0-9_-]+)|[?&]id=([a-zA-Z0-9_-]+)/
     );
@@ -414,54 +417,274 @@ if (String(m.category || '').toUpperCase() === 'WEB') {
       throw new Error('ID file ZIP tidak ditemukan');
     }
 
-    // Ambil ZIP dalam bentuk Base64
+    // Ambil ZIP dari Google Drive
     const base64 = await window.loadWebZip(fileId);
 
-    // Ekstrak isi ZIP
     const zip = await JSZip.loadAsync(base64, {
       base64: true
     });
 
-    // Cari index.html
+    // Cari halaman utama
     const indexPath = m.webIndexPath || 'index.html';
     const indexFile = zip.file(indexPath);
 
     if (!indexFile) {
-      throw new Error(
-        'index.html tidak ditemukan: ' + indexPath
+      throw new Error('index.html tidak ditemukan: ' + indexPath);
+    }
+
+    const html = await indexFile.async('text');
+
+    // Daftar MIME type
+    function getMimeType(path) {
+
+      const ext = path.split('.').pop().toLowerCase();
+
+      const types = {
+        html: 'text/html',
+        css: 'text/css',
+        js: 'text/javascript',
+        mjs: 'text/javascript',
+        json: 'application/json',
+        png: 'image/png',
+        jpg: 'image/jpeg',
+        jpeg: 'image/jpeg',
+        gif: 'image/gif',
+        svg: 'image/svg+xml',
+        webp: 'image/webp',
+        ico: 'image/x-icon',
+        woff: 'font/woff',
+        woff2: 'font/woff2',
+        ttf: 'font/ttf',
+        otf: 'font/otf',
+        mp3: 'audio/mpeg',
+        mp4: 'video/mp4',
+        webm: 'video/webm'
+      };
+
+      return types[ext] || 'application/octet-stream';
+    }
+
+    // Buat URL untuk seluruh aset ZIP
+    const assetUrls = new Map();
+
+    const zipFiles = Object.values(zip.files)
+      .filter(file => !file.dir);
+
+    for (const file of zipFiles) {
+
+      const blob = await file.async('blob');
+
+      const typedBlob = new Blob(
+        [blob],
+        { type: getMimeType(file.name) }
+      );
+
+      const url = URL.createObjectURL(typedBlob);
+
+      assetUrls.set(file.name, url);
+      objectUrls.push(url);
+    }
+
+    // Ubah alamat aset menjadi URL sementara
+    function resolveAsset(reference, basePath) {
+
+      if (
+        !reference ||
+        /^(https?:|data:|blob:|\/\/|#|mailto:|tel:|javascript:)/i.test(reference)
+      ) {
+        return reference;
+      }
+
+      try {
+
+        const cleanReference = reference.split(/[?#]/)[0];
+
+        const resolved = new URL(
+          cleanReference,
+          'https://zip.local/' + basePath
+        );
+
+        const path = decodeURIComponent(
+          resolved.pathname.replace(/^\/+/, '')
+        );
+
+        return assetUrls.get(path) || reference;
+
+      } catch (error) {
+        return reference;
+      }
+    }
+
+    // Perbaiki alamat aset di CSS
+    function rewriteCSS(css, cssPath) {
+
+      return css.replace(
+        /url\(\s*(['"]?)(.*?)\1\s*\)/gi,
+        (original, quote, reference) => {
+
+          const resolved = resolveAsset(
+            reference,
+            cssPath
+          );
+
+          return 'url("' + resolved + '")';
+        }
       );
     }
 
-    // Baca HTML utama
-    const html = await indexFile.async('text');
+    // Baca dan proses HTML
+    const parser = new DOMParser();
 
-    console.log('Paket WEB berhasil diambil:', {
-      nama: m.name,
-      fileId,
-      indexPath,
-      jumlahFile: Object.keys(zip.files).length,
-      html
-    });
+    const parsed = parser.parseFromString(
+      html,
+      'text/html'
+    );
 
-    // Penanda sementara untuk pengujian
-    f.srcdoc = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="UTF-8">
-      </head>
-      <body style="font-family:Arial;padding:25px">
-        <h2>Paket WEB berhasil diambil</h2>
-        <p>ZIP berhasil dibaca dari Google Drive.</p>
-        <p>File utama: ${esc(indexPath)}</p>
-        <p>Langkah berikutnya adalah memuat seluruh aset website.</p>
-      </body>
-      </html>
-    `;
+    // Proses CSS eksternal
+    for (const link of [
+      ...parsed.querySelectorAll('link[rel~="stylesheet"][href]')
+    ]) {
 
-    toast('Paket WEB berhasil diambil');
+      const href = link.getAttribute('href');
+
+      const cssPath = decodeURIComponent(
+        new URL(
+          href,
+          'https://zip.local/' + indexPath
+        ).pathname.replace(/^\/+/, '')
+      );
+
+      const cssFile = zip.file(cssPath);
+
+      if (!cssFile) continue;
+
+      const cssText = await cssFile.async('text');
+
+      const style = parsed.createElement('style');
+
+      style.textContent = rewriteCSS(
+        cssText,
+        cssPath
+      );
+
+      if (link.media) {
+        style.media = link.media;
+      }
+
+      link.replaceWith(style);
+    }
+
+    // Proses alamat aset HTML
+    for (const element of parsed.querySelectorAll('*')) {
+
+      const tag = element.tagName;
+
+      const attributes = [];
+
+      if (
+        [
+          'IMG', 'SCRIPT', 'IFRAME', 'SOURCE',
+          'VIDEO', 'AUDIO', 'INPUT', 'EMBED',
+          'TRACK'
+        ].includes(tag)
+      ) {
+        attributes.push('src');
+      }
+
+      if (tag === 'LINK') {
+        attributes.push('href');
+      }
+
+      if (tag === 'VIDEO') {
+        attributes.push('poster');
+      }
+
+      for (const attribute of attributes) {
+
+        const reference = element.getAttribute(attribute);
+
+        if (!reference) continue;
+
+        if (
+          tag === 'LINK' &&
+          element.rel === 'stylesheet'
+        ) {
+          continue;
+        }
+
+        element.setAttribute(
+          attribute,
+          resolveAsset(reference, indexPath)
+        );
+      }
+
+      // Proses CSS di atribut style
+      if (element.hasAttribute('style')) {
+
+        element.setAttribute(
+          'style',
+          rewriteCSS(
+            element.getAttribute('style'),
+            indexPath
+          )
+        );
+      }
+    }
+
+    // Proses CSS internal
+    for (const style of parsed.querySelectorAll('style')) {
+
+      style.textContent = rewriteCSS(
+        style.textContent,
+        indexPath
+      );
+    }
+
+    // Proses JavaScript eksternal
+    for (const script of [
+      ...parsed.querySelectorAll('script[src]')
+    ]) {
+
+      const src = script.getAttribute('src');
+
+      const scriptPath = decodeURIComponent(
+        new URL(
+          src,
+          'https://zip.local/' + indexPath
+        ).pathname.replace(/^\/+/, '')
+      );
+
+      const scriptFile = zip.file(scriptPath);
+
+      if (!scriptFile) continue;
+
+      // Module tetap menggunakan URL aset
+      if (script.type === 'module') {
+        script.src = resolveAsset(src, indexPath);
+        continue;
+      }
+
+      const scriptText = await scriptFile.async('text');
+
+      script.removeAttribute('src');
+      script.textContent = scriptText;
+    }
+
+    // Simpan URL aset untuk dibersihkan nanti
+    v.dataset.objectUrls = JSON.stringify(objectUrls);
+
+    // Tampilkan website
+    f.srcdoc =
+      '<!DOCTYPE html>\n' +
+      parsed.documentElement.outerHTML;
+
+    toast('Website WEB berhasil dimuat');
 
   } catch (error) {
+
+    objectUrls.forEach(url => {
+      URL.revokeObjectURL(url);
+    });
 
     console.error('Gagal membuka paket WEB:', error);
 
@@ -477,6 +700,7 @@ if (String(m.category || '').toUpperCase() === 'WEB') {
 
   return;
 }
+
 
 if (m.url) {
   f.removeAttribute('sandbox');
@@ -544,16 +768,38 @@ if (downloadUrl) {
 
 /* ---------- Tutup Viewer ---------- */
 
+
 const closeViewer = (fromHistory = false) => {
+
   const v = $('#viewer');
 
   if (v) {
+
+    // Bersihkan URL dokumen lokal
     if (v.dataset.objectUrl) {
       URL.revokeObjectURL(v.dataset.objectUrl);
     }
 
+    // Bersihkan seluruh aset ZIP WEB
+    if (v.dataset.objectUrls) {
+
+      try {
+
+        const urls = JSON.parse(v.dataset.objectUrls);
+
+        urls.forEach(url => {
+          URL.revokeObjectURL(url);
+        });
+
+      } catch (error) {
+        console.error('Gagal membersihkan aset WEB:', error);
+      }
+    }
+
     store.set('lastMedia', null);
+
     v.remove();
+
     render();
 
     if (!fromHistory && history.state?.edupediaViewer) {
@@ -561,6 +807,7 @@ const closeViewer = (fromHistory = false) => {
     }
   }
 };
+
 window.addEventListener('popstate', (event) => {
 
   // Jika sedang membuka media, tutup viewer dahulu
