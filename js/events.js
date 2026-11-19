@@ -895,5 +895,9 @@ history.replaceState({
 /* ---------- Render Awal ---------- */
 
 loading(async () => {
+  if (typeof window.loadOnlineMedia === 'function') {
+    await window.loadOnlineMedia();
+  }
+
   render();
 });

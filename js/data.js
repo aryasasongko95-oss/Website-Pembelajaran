@@ -156,6 +156,3 @@ window.loadOnlineMedia = function() {
   });
 };
 
-/* ---------- Muat Database Saat Aplikasi Dibuka ---------- */
-
-window.loadOnlineMedia();
