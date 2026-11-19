@@ -93,13 +93,18 @@ window.loadOnlineMedia = function() {
             upload: false
           }));
 
-         const localMedia = media.filter(item => {
-  const isLocalDocument =
-    String(item.id).startsWith('m') &&
-    ['PDF', 'PPT', 'DOKUMEN'].includes(item.category) &&
-    !item.url;
+        const localMedia = media.filter(item => {
+  const category = String(item.category || '').toUpperCase();
 
-  return !isLocalDocument;
+  const isOnlineDocument =
+    ['PDF', 'PPT', 'PPTX', 'DOKUMEN'].includes(category) &&
+    (
+      item.url ||
+      item.downloadUrl ||
+      item.upload === false
+    );
+
+  return !isOnlineDocument;
 });
 
           const mediaMap = new Map();
