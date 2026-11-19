@@ -70,7 +70,7 @@ async function uploadToGoogleDrive(file, mediaData) {
 
 /* ---------- Event Klik ---------- */
 
-document.addEventListener('click', e => {
+document.addEventListener('click', async e => {
   const t = e.target.closest(
     '[data-vp],[data-vn],[data-vf],[data-vz],[data-bd],[data-install],[data-pg],[data-more],[data-go],[data-subj],[data-addfile],[data-open],[data-material],[data-category],[data-fav],[data-es],[data-ds],[data-em],[data-dm],[data-mv],[data-cancel],[data-back],[data-home]'
   );
