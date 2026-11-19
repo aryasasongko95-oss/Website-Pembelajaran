@@ -288,33 +288,30 @@ document.addEventListener('click', async e => {
         return;
       }
 
-      /*
-        Hapus database online jika ID media
-        merupakan ID yang berasal dari server.
-      */
+      
+/*
+  Hapus database online dari Google Drive.
+*/
 
-      if (!String(target.id).startsWith('m')) {
-        try {
-          await fetch(uploadAPI, {
-            method: 'POST',
-            mode: 'no-cors',
-            headers: {
-              'Content-Type': 'text/plain;charset=utf-8'
-            },
-            body: JSON.stringify({
-              key: uploadKey,
-              action: 'delete',
-              id: target.id
-            })
-          });
+try {
+  await fetch(uploadAPI, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: {
+      'Content-Type': 'text/plain;charset=utf-8'
+    },
+    body: JSON.stringify({
+      key: uploadKey,
+      action: 'delete',
+      id: target.id
+    })
+  });
+} catch (error) {
+  console.error('Gagal mengirim permintaan hapus:', error);
+  toast('Gagal mengirim permintaan hapus', 'er');
+  return;
+}
 
-        } catch (error) {
-          console.error('Gagal mengirim permintaan hapus:', error);
-
-          toast('Gagal mengirim permintaan hapus', 'er');
-          return;
-        }
-      }
 
       media = media.filter(m => m.id !== d.dm);
       favs = favs.filter(x => x !== d.dm);
