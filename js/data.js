@@ -104,22 +104,45 @@ console.table(
         }));
 
         /* Gabungkan data online dan lokal berdasarkan ID */
-        const mediaMap = new Map();
+      // Buat kunci berdasarkan identitas media
+const getMediaKey = item => [
+  item.name,
+  item.subject,
+  item.material,
+  item.category,
+  item.desc
+].map(value => String(value || '').trim().toLowerCase()).join('|');
 
-        media.forEach(item => {
-          mediaMap.set(item.id, item);
-        });
+// Ambil identitas seluruh media online
+const onlineKeys = new Set(onlineMedia.map(getMediaKey));
 
-        onlineMedia.forEach(item => {
-          const localItem = mediaMap.get(item.id);
+// Singkirkan salinan lokal dokumen jika versi online sudah tersedia
+const filteredMedia = media.filter(item => {
+  const isLocalDocument =
+    String(item.id).startsWith('m') &&
+    ['PDF', 'PPT', 'DOKUMEN'].includes(item.category) &&
+    !item.url;
 
-          mediaMap.set(item.id, {
-            ...localItem,
-            ...item
-          });
-        });
+  return !(isLocalDocument && onlineKeys.has(getMediaKey(item)));
+});
 
-        media = Array.from(mediaMap.values());
+// Gabungkan data lokal dan online berdasarkan ID
+const mediaMap = new Map();
+
+filteredMedia.forEach(item => {
+  mediaMap.set(item.id, item);
+});
+
+onlineMedia.forEach(item => {
+  const localItem = mediaMap.get(item.id);
+
+  mediaMap.set(item.id, {
+    ...localItem,
+    ...item
+  });
+});
+
+media = Array.from(mediaMap.values());
 
         store.set('media', media);
 
