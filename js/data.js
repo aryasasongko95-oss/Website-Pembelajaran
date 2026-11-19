@@ -100,6 +100,7 @@ console.table(
           category: item.category,
           desc: item.desc || '',
           url: item.url || '',
+          downloadUrl: item.downloadUrl || '',
           date: item.date,
           html: '',
           docId: '',

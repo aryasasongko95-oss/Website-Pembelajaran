@@ -384,7 +384,10 @@ async function openMedia(id) {
 if (m.url) {
   f.removeAttribute('sandbox');
 
-  if (m.category === 'PPT') {
+if (m.category === 'PPT') {
+  let downloadUrl = m.downloadUrl || '';
+
+  if (!downloadUrl && m.url) {
     const match = m.url.match(
       /\/(?:file\/d|presentation\/d)\/([a-zA-Z0-9_-]+)|[?&]id=([a-zA-Z0-9_-]+)/
     );
@@ -392,14 +395,17 @@ if (m.url) {
     if (match) {
       const fileId = match[1] || match[2];
 
-      const downloadUrl = m.url.includes('docs.google.com/presentation')
+      downloadUrl = m.url.includes('docs.google.com/presentation')
         ? `https://docs.google.com/presentation/d/${fileId}/export/pptx`
         : `https://drive.google.com/uc?export=download&id=${fileId}`;
-
-      window.location.href = downloadUrl;
-      return;
     }
   }
+
+  if (downloadUrl) {
+    window.location.href = downloadUrl;
+    return;
+  }
+}
 
   const previewUrl = getDrivePreviewUrl(m.url);
   f.src = previewUrl;
