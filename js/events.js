@@ -964,4 +964,4 @@ setInterval(() => {
   if (typeof window.loadOnlineMedia === 'function') {
     window.loadOnlineMedia();
   }
-}, 10000);
+}, 3000);
