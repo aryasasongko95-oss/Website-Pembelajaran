@@ -62,110 +62,87 @@ const persist = () => {
 
 /* ---------- Database Online ---------- */
 
-window.loadOnlineMedia = function(){
 
+window.loadOnlineMedia = function() {
   return new Promise(resolve => {
-
-    const callbackName =
-      'eduPediaCallback_' + Date.now();
-
+    const callbackName = 'eduPediaCallback_' + Date.now();
     const script = document.createElement('script');
 
     script.src =
       'https://script.google.com/macros/s/AKfycbwcvSbavl3tjOuzfrhEYBB5WPwOceEz9Q3Uvp65HYVNe5A-0fZSAyZ1IT3MwgruPoPh7Q/exec' +
       '?action=list&callback=' + callbackName;
 
-    window[callbackName] = function(result){
+    window[callbackName] = function(result) {
+      try {
+        if (result && result.status === 'success') {
+          console.log('DATA DARI GOOGLE SHEETS:', result.media);
 
-      if(result && result.status === 'success'){
+          const onlineMedia = (result.media || []).map(item => ({
+            id: item.id,
+            name: item.name,
+            subject: item.subject,
+            material: item.material,
+            category: item.category,
+            desc: item.desc || '',
+            url: item.url || '',
+            downloadUrl: item.downloadUrl || '',
+            date: item.date,
+            html: '',
+            docId: '',
+            fileName: '',
+            upload: false
+          }));
 
-        console.log('DATA DARI GOOGLE SHEETS:', result.media);
-console.table(
-  (result.media || []).map(item => ({
-    nama: item.name,
-    kategori: item.category,
-    url: item.url
-  }))
-);
-        const onlineMedia = (result.media || []).map(item => ({
-          id: item.id,
-          name: item.name,
-          subject: item.subject,
-          material: item.material,
-          category: item.category,
-          desc: item.desc || '',
-          url: item.url || '',
-          downloadUrl: item.downloadUrl || '',
-          date: item.date,
-          html: '',
-          docId: '',
-          fileName: '',
-          upload: false
-        }));
+          // Dokumen lokal tidak lagi dijadikan sumber utama.
+          // Pertahankan media WEB dan media non-dokumen lokal.
+          const localMedia = media.filter(item => {
+            const isLocalDocument =
+              String(item.id).startsWith('m') &&
+              ['PDF', 'PPT', 'DOKUMEN'].includes(item.category);
 
-        /* Gabungkan data online dan lokal berdasarkan ID */
-      // Buat kunci berdasarkan identitas media
-const getMediaKey = item => [
-  item.name,
-  item.subject,
-  item.material,
-  item.category,
-  item.desc
-].map(value => String(value || '').trim().toLowerCase()).join('|');
+            return !isLocalDocument;
+          });
 
-// Ambil identitas seluruh media online
-const onlineKeys = new Set(onlineMedia.map(getMediaKey));
+          // Gabungkan media lokal dan database online.
+          const mediaMap = new Map();
 
-// Singkirkan salinan lokal dokumen jika versi online sudah tersedia
-const filteredMedia = media.filter(item => {
-  const isLocalDocument =
-    String(item.id).startsWith('m') &&
-    ['PDF', 'PPT', 'DOKUMEN'].includes(item.category) &&
-    !item.url;
+          localMedia.forEach(item => {
+            mediaMap.set(item.id, item);
+          });
 
-  return !(isLocalDocument && onlineKeys.has(getMediaKey(item)));
-});
+          onlineMedia.forEach(item => {
+            mediaMap.set(item.id, item);
+          });
 
-// Gabungkan data lokal dan online berdasarkan ID
-const mediaMap = new Map();
+          media = Array.from(mediaMap.values());
 
-filteredMedia.forEach(item => {
-  mediaMap.set(item.id, item);
-});
+          store.set('media', media);
 
-onlineMedia.forEach(item => {
-  const localItem = mediaMap.get(item.id);
+          console.log('MEDIA SETELAH SINKRONISASI:', media);
+          console.table(media.map(item => ({
+            id: item.id,
+            nama: item.name,
+            kategori: item.category
+          })));
 
-  mediaMap.set(item.id, {
-    ...localItem,
-    ...item
-  });
-});
-
-media = Array.from(mediaMap.values());
-
-        store.set('media', media);
-
-        console.log('MEDIA FINAL:', media);
-
-        if(typeof render === 'function'){
-          render();
+          if (typeof render === 'function') {
+            render();
+          }
         }
+      } catch (error) {
+        console.error('Sinkronisasi media gagal:', error);
       }
 
       delete window[callbackName];
       script.remove();
-
       resolve();
     };
 
-    script.onerror = function(){
-
+    script.onerror = function() {
       delete window[callbackName];
       script.remove();
 
       console.error('Gagal memuat database online');
-
       resolve();
     };
 
@@ -173,5 +150,5 @@ media = Array.from(mediaMap.values());
   });
 };
 
-/* ---------- Muat Database Saat Aplikasi Dibuka ---------- */
+// Muat database saat aplikasi dibuka.
 window.loadOnlineMedia();
