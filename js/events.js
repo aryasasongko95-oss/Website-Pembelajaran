@@ -1,5 +1,50 @@
 /* EduPedia - Event klik/input/submit, pintasan keyboard, dan inisialisasi. */
 /* ---------- Event ---------- */
+
+const EDU_PEDIA_API = 'https://script.google.com/macros/s/AKfycbwcvSbavl3tjOuzfrhEYBB5WPwOceEz9Q3Uvp65HYVNe5A-0fZSAyZ1IT3MwgruPoPh7Q/exec';
+
+const EDU_PEDIA_UPLOAD_KEY = 'EduPediaUpload2026';
+
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      resolve(reader.result.split(',')[1]);
+    };
+
+    reader.onerror = () => reject(reader.error);
+
+    reader.readAsDataURL(file);
+  });
+}
+
+async function uploadToGoogleDrive(file, mediaData) {
+  const base64 = await fileToBase64(file);
+
+  const payload = {
+    key: EDU_PEDIA_UPLOAD_KEY,
+    action: 'upload',
+    base64,
+    fileName: file.name,
+    mimeType: file.type || 'application/octet-stream',
+    name: mediaData.name,
+    subject: mediaData.subject,
+    material: mediaData.material,
+    category: mediaData.category,
+    description: mediaData.desc
+  };
+
+  return fetch(EDU_PEDIA_API, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: {
+      'Content-Type': 'text/plain;charset=utf-8'
+    },
+    body: JSON.stringify(payload)
+  });
+}
+
 document.addEventListener('click',e=>{
  const t=e.target.closest('[data-vp],[data-vn],[data-vf],[data-vz],[data-bd],[data-install],[data-pg],[data-more],[data-go],[data-subj],[data-addfile],[data-open],[data-material],[data-category],[data-fav],[data-es],[data-ds],[data-em],[data-dm],[data-mv],[data-cancel],[data-back],[data-home]');
   if(!t){if(!e.target.closest('.prof'))$('#pm').classList.remove('on');return}
@@ -106,10 +151,7 @@ if(f.id==='fm'){
       toast('Format dokumen tidak didukung','er');
       return;
     }
-if(f.hasAttribute('data-category-form') && category !== selectedCategory){
-  toast('Jenis file tidak sesuai dengan kategori yang dibuka','er');
-  return;
-}
+
     await docDB.init();
 
     const documentId = 'doc-' + Date.now();
@@ -134,11 +176,12 @@ if(f.hasAttribute('data-category-form') && category !== selectedCategory){
     category = 'WEB';
 
     const find = p => files.find(x =>
-      x.webkitRelativePath.endsWith('/'+p.replace(/^\.?\//,''))
+      x.webkitRelativePath.endsWith('/'+p.replace(/^\.\//,''))
     );
 
+    // Masukkan CSS ke dalam HTML
     html = html.replace(
-      /<link[^>]+href=["']([^"':]+\.css)["'][^>]*>/gi,
+      /<link[^>]+href=["']([^"']+\.css)["'][^>]*>/gi,
       (a,p) => {
         const x = find(p);
         return x
@@ -147,16 +190,19 @@ if(f.hasAttribute('data-category-form') && category !== selectedCategory){
       }
     );
 
+    // Ganti placeholder CSS dengan isi file
     for(const m of html.matchAll(/@@(\d+)@@/g)){
       html = html.replace(m[0],await files[+m[1]].text());
     }
 
+    // Masukkan JavaScript ke dalam HTML
     const js = [...html.matchAll(
-      /<script[^>]+src=["']([^"':]+\.js)["'][^>]*><\/script>/gi
+      /<script[^>]+src=["']([^"']+\.js)["'][^>]*><\/script>/gi
     )];
 
     for(const m of js){
       const x = find(m[1]);
+
       if(x){
         html = html.replace(
           m[0],
@@ -167,11 +213,17 @@ if(f.hasAttribute('data-category-form') && category !== selectedCategory){
       }
     }
   }
-  if(f.hasAttribute('data-category-form') && category !== selectedCategory){
+
+  // Validasi kategori
+  if(
+    f.hasAttribute('data-category-form') &&
+    category.toUpperCase() !== String(selectedCategory).toUpperCase()
+  ){
     toast('Jenis file tidak sesuai dengan kategori yang dibuka','er');
     return;
   }
-  
+
+  // Validasi mata pelajaran dan materi
   if(!d.subject || !materialId){
     toast('Pilih mata pelajaran dan materi terlebih dahulu','er');
     return;
@@ -184,6 +236,7 @@ if(f.hasAttribute('data-category-form') && category !== selectedCategory){
     return;
   }
 
+  // Data media
   const mediaData = {
     name:d.name.trim(),
     subject:d.subject,
@@ -197,6 +250,19 @@ if(f.hasAttribute('data-category-form') && category !== selectedCategory){
     upload:!!html
   };
 
+  // Upload dokumen ke Google Drive
+  if(documentFile){
+    try {
+      await uploadToGoogleDrive(documentFile,mediaData);
+      toast('Permintaan upload dokumen dikirim');
+    } catch(error) {
+      console.error('Upload gagal:',error);
+      toast('Gagal mengirim dokumen ke Google Drive','er');
+      return;
+    }
+  }
+
+  // Simpan media
   if(editing?.t === 'm'){
     const m = media.find(x => x.id === editing.id);
     Object.assign(m,mediaData);
@@ -208,6 +274,7 @@ if(f.hasAttribute('data-category-form') && category !== selectedCategory){
       date:today(),
       order:media.length
     });
+
     toast('Media ditambahkan');
   }
 }
