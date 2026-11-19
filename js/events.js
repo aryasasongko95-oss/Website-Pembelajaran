@@ -1,4 +1,5 @@
 /* EduPedia - Event klik/input/submit, pintasan keyboard, dan inisialisasi */
+
 /* ---------- Riwayat Navigasi EduPedia ---------- */
 
 function pushEduPediaHistory() {
@@ -10,7 +11,6 @@ function pushEduPediaHistory() {
     selectedCategory
   }, '', location.href);
 }
-/* ---------- Konfigurasi Upload ---------- */
 
 /* ---------- Konfigurasi Upload ---------- */
 
@@ -18,6 +18,7 @@ const uploadAPI =
   'https://script.google.com/macros/s/AKfycbwcvSbavl3tjOuzfrhEYBB5WPwOceEz9Q3Uvp65HYVNe5A-0fZSAyZ1IT3MwgruPoPh7Q/exec';
 
 const uploadKey = 'EduPediaUpload2026';
+
 /* ---------- Konversi File ---------- */
 
 function fileToBase64(file) {
@@ -33,8 +34,6 @@ function fileToBase64(file) {
     reader.readAsDataURL(file);
   });
 }
-
-/* ---------- Upload Google Drive ---------- */
 
 /* ---------- Upload Google Drive ---------- */
 
@@ -79,6 +78,7 @@ document.addEventListener('click', async e => {
     if (!e.target.closest('.prof')) {
       $('#pm').classList.remove('on');
     }
+
     return;
   }
 
@@ -100,9 +100,9 @@ document.addEventListener('click', async e => {
     selectedCategory = d.category;
     view = 'category';
 
-pushEduPediaHistory();
-    
-store.set('lastNavigation', {
+    pushEduPediaHistory();
+
+    store.set('lastNavigation', {
       view,
       sel,
       selectedMaterial,
@@ -216,22 +216,23 @@ store.set('lastNavigation', {
     scrollTo(0, y);
   }
 
-else if ('back' in d) {
-  if (history.state?.edupediaViewer) {
-    history.back();
-  } else {
-    closeViewer();
-  }
-}
-else if ('home' in d) {
-  store.set('lastMedia', null);
-
-  if (history.state?.edupediaViewer) {
-    history.back();
+  else if ('back' in d) {
+    if (history.state?.edupediaViewer) {
+      history.back();
+    } else {
+      closeViewer();
+    }
   }
 
-  go('dashboard');
-}
+  else if ('home' in d) {
+    store.set('lastMedia', null);
+
+    if (history.state?.edupediaViewer) {
+      history.back();
+    }
+
+    go('dashboard');
+  }
 
   else if (d.es) {
     editing = {
@@ -271,51 +272,67 @@ else if ('home' in d) {
     }
   }
 
-else if (d.dm) {
+  else if (d.dm) {
     console.log('TOMBOL HAPUS DIKLIK:', d.dm);
-  console.log('UPLOAD API:', uploadAPI);
-  if (confirm('Hapus media ini?')) {
-    const target = media.find(m => m.id === d.dm);
-console.log('TARGET HAPUS:', target);
-    if (!target) {
+    console.log('UPLOAD API:', uploadAPI);
+
+    if (confirm('Hapus media ini?')) {
+      const target = media.find(m => m.id === d.dm);
+
+      console.log('TARGET HAPUS:', target);
+
+      if (!target) {
+        toast('Media tidak ditemukan', 'er');
+        return;
+      }
+
+      /*
+        Hapus database online jika ID media
+        merupakan ID yang berasal dari server.
+      */
+
+      if (!String(target.id).startsWith('m')) {
+        try {
+          await fetch(uploadAPI, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: {
+              'Content-Type': 'text/plain;charset=utf-8'
+            },
+            body: JSON.stringify({
+              key: uploadKey,
+              action: 'delete',
+              id: target.id
+            })
+          });
+
+        } catch (error) {
+          console.error('Gagal mengirim permintaan hapus:', error);
+
+          toast('Gagal mengirim permintaan hapus', 'er');
+          return;
+        }
+      }
+
+      media = media.filter(m => m.id !== d.dm);
+      favs = favs.filter(x => x !== d.dm);
+
+      persist();
+      toast('Permintaan penghapusan dikirim');
+      render();
+    }
+  }
+
+  else if (d.mv) {
+    const [id, dir] = d.mv.split(':');
+
+    const m = media.find(x => x.id === id);
+
+    if (!m) {
       toast('Media tidak ditemukan', 'er');
       return;
     }
 
-    // Hapus dari database online jika memiliki ID online
-    if (!String(target.id).startsWith('m')) {
-      try {
-        await fetch(uploadAPI, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: {
-            'Content-Type': 'text/plain;charset=utf-8'
-          },
-          body: JSON.stringify({
-            key: uploadKey,
-            action: 'delete',
-            id: target.id
-          })
-        });
-      } catch (error) {
-        console.error('Gagal mengirim permintaan hapus:', error);
-        toast('Gagal mengirim permintaan hapus', 'er');
-        return;
-      }
-    }
-
-    media = media.filter(m => m.id !== d.dm);
-    favs = favs.filter(x => x !== d.dm);
-
-    persist();
-    toast('Permintaan penghapusan dikirim');
-    render();
-  }
-}
-
-  else if (d.mv) {
-    const [id, dir] = d.mv.split(':');
-    const m = media.find(x => x.id === id);
     const g = mediaOf(m.subject);
 
     const i = g.indexOf(m);
@@ -327,6 +344,7 @@ console.log('TARGET HAPUS:', target);
         (dir < 0 ? 'atas' : 'bawah'),
         true
       );
+
       return;
     }
 
@@ -359,7 +377,12 @@ document.addEventListener('input', e => {
 /* ---------- Event Change ---------- */
 
 document.addEventListener('change', e => {
-
+    console.log(
+    'CHANGE:',
+    e.target.name,
+    e.target.type,
+    e.target.files?.[0]?.name
+  );
   if (e.target.id === 'mediaSubject') {
     const subjectId = e.target.value;
     const materialSelect = $('#mediaMaterial');
@@ -398,9 +421,23 @@ document.addEventListener('change', e => {
 /* ---------- Event Submit ---------- */
 
 document.addEventListener('submit', async e => {
-  e.preventDefault();
+  console.log(
+    'FORM SUBMIT:',
+    e.target.id
+  );
+  /*
+    Hanya form EduPedia yang diproses.
+    Form login admin tidak ikut diproses.
+  */
 
   const f = e.target;
+
+  if (f.id !== 'fs' && f.id !== 'fm') {
+    return;
+  }
+
+  e.preventDefault();
+
   const d = Object.fromEntries(new FormData(f));
 
   /* ---------- Form Mata Pelajaran ---------- */
@@ -446,6 +483,7 @@ document.addEventListener('submit', async e => {
   if (f.id === 'fm') {
 
     const documentFile = f.document?.files?.[0];
+
     const files = [...(f.folder?.files || [])];
 
     const materialId = d.material;
@@ -506,13 +544,22 @@ document.addEventListener('submit', async e => {
       }
 
       html = await main.text();
+
       category = 'WEB';
 
-      const find = p => files.find(x =>
-        x.webkitRelativePath.endsWith(
-          '/' + p.replace(/^\.\//, '')
-        )
-      );
+      /*
+        Mencari file berdasarkan relative path.
+        Menghapus ./ di awal path.
+      */
+
+      const find = p => {
+        const path = p.replace(/^\.\/+/, '');
+
+        return files.find(x =>
+          x.webkitRelativePath.endsWith('/' + path) ||
+          x.webkitRelativePath === path
+        );
+      };
 
       /* ---------- Masukkan CSS ---------- */
 
@@ -531,7 +578,7 @@ document.addEventListener('submit', async e => {
 
       /* ---------- Ganti Placeholder CSS ---------- */
 
-      for (const m of html.matchAll(/@@(\d+)@@/g)) {
+      for (const m of [...html.matchAll(/@@(\d+)@@/g)]) {
         html = html.replace(
           m[0],
           await files[+m[1]].text()
@@ -572,6 +619,7 @@ document.addEventListener('submit', async e => {
         'Jenis file tidak sesuai dengan kategori yang dibuka',
         'er'
       );
+
       return;
     }
 
@@ -582,6 +630,7 @@ document.addEventListener('submit', async e => {
         'Pilih mata pelajaran dan materi terlebih dahulu',
         'er'
       );
+
       return;
     }
 
@@ -597,6 +646,7 @@ document.addEventListener('submit', async e => {
         'Materi tidak sesuai dengan mata pelajaran',
         'er'
       );
+
       return;
     }
 
@@ -656,6 +706,11 @@ document.addEventListener('submit', async e => {
         x => x.id === editing.id
       );
 
+      if (!m) {
+        toast('Media yang diedit tidak ditemukan', 'er');
+        return;
+      }
+
       Object.assign(m, mediaData);
 
       toast('Media diperbarui');
@@ -676,11 +731,10 @@ document.addEventListener('submit', async e => {
 
   /* ---------- Selesai ---------- */
 
-editing = null;
+  editing = null;
 
-persist();
-render();
-
+  persist();
+  render();
 });
 
 /* ---------- Toggle Sidebar ---------- */
@@ -885,6 +939,7 @@ if (lastNavigation) {
     selectedCategory = lastNavigation.selectedCategory;
   }
 }
+
 history.replaceState({
   edupediaNavigation: true,
   view,
@@ -893,40 +948,13 @@ history.replaceState({
   selectedCategory
 }, '', location.href);
 
-/* ---------- Render Awal dan Sinkronisasi Otomatis ---------- */
+/* ---------- Render Awal ---------- */
 
 loading(async () => {
+
   if (typeof window.loadOnlineMedia === 'function') {
     await window.loadOnlineMedia();
   }
 
   render();
-
-  // Sinkronisasi otomatis setiap 10 detik
-  if (window.__eduPediaSyncTimer) {
-    clearInterval(window.__eduPediaSyncTimer);
-  }
-
-  window.__eduPediaSyncTimer = setInterval(() => {
-    if (
-      document.visibilityState === 'visible' &&
-      typeof window.loadOnlineMedia === 'function'
-    ) {
-      window.loadOnlineMedia();
-    }
-  }, 10000);
-
-  // Sinkronisasi ketika kembali membuka tab
-  if (!window.__eduPediaVisibilityListener) {
-    window.__eduPediaVisibilityListener = true;
-
-    document.addEventListener('visibilitychange', () => {
-      if (
-        document.visibilityState === 'visible' &&
-        typeof window.loadOnlineMedia === 'function'
-      ) {
-        window.loadOnlineMedia();
-      }
-    });
-  }
 });
