@@ -60,8 +60,11 @@ const persist = () => {
   store.set('favs', favs);
 };
 
+
 /* ---------- Database Online ---------- */
+
 let onlineMediaSyncRunning = false;
+
 window.loadOnlineMedia = function() {
   return new Promise(resolve => {
 
@@ -72,14 +75,23 @@ window.loadOnlineMedia = function() {
 
     onlineMediaSyncRunning = true;
 
-   script.src =
-  'https://script.google.com/macros/s/AKfycbwcvSbavl3tjOuzfrhEYBB5WPwOceEz9Q3Uvp65HYVNe5A-0fZSAyZ1IT3MwgruPoPh7Q/exec' +
-  '?action=list&callback=' + callbackName +
-  '&nocache=' + Date.now();
+    // Buat elemen script dan nama callback
+    const script = document.createElement('script');
+    const callbackName =
+      'eduPediaCallback_' + Date.now();
+
+    // URL database Google Apps Script
+    script.src =
+      'https://script.google.com/macros/s/AKfycbwcvSbavl3tjOuzfrhEYBB5WPwOceEz9Q3Uvp65HYVNe5A-0fZSAyZ1IT3MwgruPoPh7Q/exec' +
+      '?action=list&callback=' + callbackName +
+      '&nocache=' + Date.now();
+
+    script.async = true;
 
     window[callbackName] = function(result) {
       try {
         if (result && result.status === 'success') {
+
           console.log('DATA DARI GOOGLE SHEETS:', result.media);
 
           const onlineMedia = (result.media || []).map(item => ({
@@ -98,19 +110,21 @@ window.loadOnlineMedia = function() {
             upload: false
           }));
 
-        const localMedia = media.filter(item => {
-  const category = String(item.category || '').toUpperCase();
+          const localMedia = media.filter(item => {
+            const category = String(
+              item.category || ''
+            ).toUpperCase();
 
-  const isOnlineDocument =
-    ['PDF', 'PPT', 'PPTX', 'DOKUMEN'].includes(category) &&
-    (
-      item.url ||
-      item.downloadUrl ||
-      item.upload === false
-    );
+            const isOnlineDocument =
+              ['PDF', 'PPT', 'PPTX', 'DOKUMEN'].includes(category) &&
+              (
+                item.url ||
+                item.downloadUrl ||
+                item.upload === false
+              );
 
-  return !isOnlineDocument;
-});
+            return !isOnlineDocument;
+          });
 
           const mediaMap = new Map();
 
@@ -131,7 +145,10 @@ window.loadOnlineMedia = function() {
 
           store.set('media', media);
 
-          console.log('MEDIA SETELAH SINKRONISASI:', media);
+          console.log(
+            'MEDIA SETELAH SINKRONISASI:',
+            media
+          );
 
           console.table(media.map(item => ({
             id: item.id,
@@ -142,24 +159,36 @@ window.loadOnlineMedia = function() {
           if (typeof render === 'function') {
             render();
           }
-        } else {
-          console.error('Database online gagal:', result);
-        }
-      } catch (error) {
-        console.error('Sinkronisasi media gagal:', error);
-      }
 
-      delete window[callbackName];
-      script.remove();
-      onlineMediaSyncRunning = false;
-      resolve(); 
+        } else {
+          console.error(
+            'Database online gagal:',
+            result
+          );
+        }
+
+      } catch (error) {
+        console.error(
+          'Sinkronisasi media gagal:',
+          error
+        );
+
+      } finally {
+        delete window[callbackName];
+        script.remove();
+        onlineMediaSyncRunning = false;
+        resolve();
+      }
     };
 
     script.onerror = function() {
       delete window[callbackName];
       script.remove();
 
-      console.error('Gagal memuat database online');
+      console.error(
+        'Gagal memuat database online'
+      );
+
       onlineMediaSyncRunning = false;
       resolve();
     };
@@ -167,4 +196,3 @@ window.loadOnlineMedia = function() {
     document.body.appendChild(script);
   });
 };
-
