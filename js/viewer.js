@@ -381,16 +381,30 @@ async function openMedia(id) {
 
   /* ---------- File Online / Google Drive ---------- */
 
-  if (m.url) {
+if (m.url) {
+  f.removeAttribute('sandbox');
 
-    const previewUrl = getDrivePreviewUrl(m.url);
+  if (m.category === 'PPT') {
+    const match = m.url.match(
+      /\/(?:file\/d|presentation\/d)\/([a-zA-Z0-9_-]+)|[?&]id=([a-zA-Z0-9_-]+)/
+    );
 
-    f.removeAttribute('sandbox');
+    if (match) {
+      const fileId = match[1] || match[2];
 
-    f.src = previewUrl;
+      const downloadUrl = m.url.includes('docs.google.com/presentation')
+        ? `https://docs.google.com/presentation/d/${fileId}/export/pptx`
+        : `https://drive.google.com/uc?export=download&id=${fileId}`;
 
-    return;
+      window.location.href = downloadUrl;
+      return;
+    }
   }
+
+  const previewUrl = getDrivePreviewUrl(m.url);
+  f.src = previewUrl;
+  return;
+}
 
 
   /* ---------- HTML Media ---------- */
