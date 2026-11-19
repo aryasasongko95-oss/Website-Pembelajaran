@@ -471,7 +471,7 @@ const closeViewer = (fromHistory = false) => {
   }
 };
 window.addEventListener('popstate', () => {
-  alert('POPSTATE TERPANGGIL');
+  console.log('POPSTATE TERPANGGIL');
 
   if ($('#viewer')) {
     closeViewer(true);
