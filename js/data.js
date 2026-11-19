@@ -80,7 +80,18 @@ window.loadOnlineMedia = function(){
       if(result && result.status === 'success'){
 
         console.log('DATA DARI GOOGLE SHEETS:', result.media);
-
+        alert(
+  (result.media || [])
+    .map(item => item.name + '\n' + item.url)
+    .join('\n\n')
+);
+console.table(
+  (result.media || []).map(item => ({
+    nama: item.name,
+    kategori: item.category,
+    url: item.url
+  }))
+);
         const onlineMedia = (result.media || []).map(item => ({
           id: item.id,
           name: item.name,
