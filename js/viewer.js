@@ -39,7 +39,13 @@ async function openMedia(id) {
   v.className = 'viewer';
   v.id = 'viewer';
   v.dataset.id = m.id;
-
+if (!history.state?.edupediaViewer) {
+  history.pushState(
+    { edupediaViewer: true },
+    '',
+    location.href
+  );
+}
   addRecent(m.id);
 
   store.set('lastMedia', m.id);
@@ -87,11 +93,7 @@ async function openMedia(id) {
   `;
 
   document.body.append(v);
-history.pushState(
-  { edupediaViewer: true },
-  '',
-  location.href
-);
+
   const f = $('iframe', v);
 
 
@@ -469,6 +471,8 @@ const closeViewer = (fromHistory = false) => {
   }
 };
 window.addEventListener('popstate', () => {
+  alert('POPSTATE TERPANGGIL');
+
   if ($('#viewer')) {
     closeViewer(true);
   }
