@@ -94,6 +94,12 @@ if (!history.state?.edupediaViewer) {
 
   document.body.append(v);
 
+history.pushState(
+  { edupediaViewer: true, timestamp: Date.now() },
+  '',
+  location.href
+);
+
   const f = $('iframe', v);
 
 
