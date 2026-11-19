@@ -92,7 +92,6 @@ window.loadOnlineMedia = function() {
             upload: false
           }));
 
-          // Hapus dokumen lokal yang sudah tidak menjadi sumber utama.
           const localMedia = media.filter(item => {
             const category = String(item.category || '').toUpperCase();
 
@@ -104,7 +103,6 @@ window.loadOnlineMedia = function() {
             return !isLocalDocument;
           });
 
-          // Gabungkan media lokal dan online.
           const mediaMap = new Map();
 
           localMedia.forEach(item => {
@@ -120,7 +118,6 @@ window.loadOnlineMedia = function() {
             });
           });
 
-          // Simpan hasil sinkronisasi.
           media = Array.from(mediaMap.values());
 
           store.set('media', media);
