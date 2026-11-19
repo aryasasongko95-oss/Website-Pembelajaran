@@ -12,7 +12,12 @@ const seedSubjects = [
   ['bahasa-indonesia','Bahasa Indonesia','📖','Membaca, menulis, dan berbahasa yang baik.'],
   ['bahasa-inggris','Bahasa Inggris','🔤','Grammar, vocabulary, dan komunikasi.'],
   ['sosiologi','Sosiologi','👥','Masyarakat, interaksi sosial, dan perubahan sosial.']
-].map(([id,name,icon,desc]) => ({id,name,icon,desc}));
+].map(([id,name,icon,desc]) => ({
+  id,
+  name,
+  icon,
+  desc
+}));
 
 /* ---------- Materi ---------- */
 const seedMaterials = [
@@ -24,7 +29,10 @@ const seedMaterials = [
   ['p6','Fungsi Kuadrat','matematika','Grafik dan akar persamaan kuadrat.'],
   ['p7','Sel dan Organel','biologi','Struktur dan fungsi bagian sel.']
 ].map(([id,name,subject,desc]) => ({
-  id,name,subject,desc
+  id,
+  name,
+  subject,
+  desc
 }));
 
 /* ---------- Data Media ---------- */
@@ -44,8 +52,8 @@ let isAdmin = store.get('admin', false);
 
 const htmlOf = m => m.html || sampleHtml(m.name);
 
+/* ---------- Persist Data ---------- */
 const persist = () => {
-  loadOnlineMedia()
   store.set('subjects', subjects);
   store.set('materials', materials);
   store.set('media', media);
@@ -54,21 +62,26 @@ const persist = () => {
 
 /* ---------- Database Online ---------- */
 
-const EDU_PEDIA_API = 'https://script.google.com/macros/s/AKfycbwcvSbavl3tjOuzfrhEYBB5WPwOceEz9Q3Uvp65HYVNe5A-0fZSAyZ1IT3MwgruPoPh7Q/exec';
-
 window.loadOnlineMedia = function(){
-  return new Promise((resolve) => {
-    const callbackName = 'eduPediaCallback_' + Date.now();
+
+  return new Promise(resolve => {
+
+    const callbackName =
+      'eduPediaCallback_' + Date.now();
 
     const script = document.createElement('script');
-    script.src = EDU_PEDIA_API + '?action=list&callback=' + callbackName;
+
+    script.src =
+      'https://script.google.com/macros/s/AKfycbwcvSbavl3tjOuzfrhEYBB5WPwOceEz9Q3Uvp65HYVNe5A-0fZSAyZ1IT3MwgruPoPh7Q/exec' +
+      '?action=list&callback=' + callbackName;
 
     window[callbackName] = function(result){
-      if(result.status === 'success' && result.media.length > 0){
-          console.log('DATA DARI GOOGLE SHEETS:', result.media);
-          console.log('KATEGORI TERPILIH:', selectedCategory);
-          console.log('MATERI TERPILIH:', selectedMaterial);
-        media = result.media.map(item => ({
+
+      if(result && result.status === 'success'){
+
+        console.log('DATA DARI GOOGLE SHEETS:', result.media);
+
+        const onlineMedia = (result.media || []).map(item => ({
           id: item.id,
           name: item.name,
           subject: item.subject,
@@ -83,22 +96,52 @@ window.loadOnlineMedia = function(){
           upload: false
         }));
 
+        /* Gabungkan data online dan lokal berdasarkan ID */
+        const mediaMap = new Map();
+
+        media.forEach(item => {
+          mediaMap.set(item.id, item);
+        });
+
+        onlineMedia.forEach(item => {
+          const localItem = mediaMap.get(item.id);
+
+          mediaMap.set(item.id, {
+            ...localItem,
+            ...item
+          });
+        });
+
+        media = Array.from(mediaMap.values());
+
         store.set('media', media);
-        render();
+
+        console.log('MEDIA FINAL:', media);
+
+        if(typeof render === 'function'){
+          render();
+        }
       }
 
       delete window[callbackName];
       script.remove();
+
       resolve();
     };
 
     script.onerror = function(){
+
       delete window[callbackName];
       script.remove();
+
       console.error('Gagal memuat database online');
+
       resolve();
     };
 
     document.body.appendChild(script);
   });
-}
+};
+
+/* ---------- Muat Database Saat Aplikasi Dibuka ---------- */
+window.loadOnlineMedia();
