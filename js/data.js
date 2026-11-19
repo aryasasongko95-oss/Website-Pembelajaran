@@ -67,10 +67,11 @@ window.loadOnlineMedia = function() {
     const callbackName = 'eduPediaCallback_' + Date.now();
     const script = document.createElement('script');
 
-    script.src =
-      'https://script.google.com/macros/s/AKfycbwcvSbavl3tjOuzfrhEYBB5WPwOceEz9Q3Uvp65HYVNe5A-0fZSAyZ1IT3MwgruPoPh7Q/exec' +
-      '?action=list&callback=' + callbackName;
-
+   script.src =
+  'https://script.google.com/macros/s/AKfycbwcvSbavl3tjOuzfrhEYBB5WPwOceEz9Q3Uvp65HYVNe5A-0fZSAyZ1IT3MwgruPoPh7Q/exec' +
+  '?action=list&callback=' + callbackName +
+  '&nocache=' + Date.now();
+  
     window[callbackName] = function(result) {
       try {
         if (result && result.status === 'success') {
@@ -93,15 +94,13 @@ window.loadOnlineMedia = function() {
           }));
 
           const localMedia = media.filter(item => {
-            const category = String(item.category || '').toUpperCase();
+  const category = String(item.category || '').toUpperCase();
 
-            const isLocalDocument =
-              String(item.id).startsWith('m') &&
-              ['PDF', 'PPT', 'PPTX', 'DOKUMEN'].includes(category) &&
-              !item.url;
+  const isDocument =
+    ['PDF', 'PPT', 'PPTX', 'DOKUMEN'].includes(category);
 
-            return !isLocalDocument;
-          });
+  return !isDocument;
+});
 
           const mediaMap = new Map();
 
