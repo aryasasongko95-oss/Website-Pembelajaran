@@ -1,4 +1,3 @@
-
 /* EduPedia - Data mata pelajaran, materi, dan media */
 
 /* ---------- Mata Pelajaran ---------- */
@@ -45,7 +44,6 @@ let isAdmin = store.get('admin', false);
 
 const htmlOf = m => m.html || sampleHtml(m.name);
 
-
 const persist = () => {
   store.set('subjects', subjects);
   store.set('materials', materials);
@@ -53,3 +51,53 @@ const persist = () => {
   store.set('favs', favs);
 };
 
+/* ---------- Database Online ---------- */
+
+const EDU_PEDIA_API = 'https://script.google.com/macros/s/AKfycbwcvSbavl3tjOuzfrhEYBB5WPwOceEz9Q3Uvp65HYVNe5A-0fZSAyZ1IT3MwgruPoPh7Q/exec';
+
+function loadOnlineMedia(){
+  return new Promise((resolve) => {
+    const callbackName = 'eduPediaCallback_' + Date.now();
+
+    const script = document.createElement('script');
+    script.src = EDU_PEDIA_API + '?action=list&callback=' + callbackName;
+
+    window[callbackName] = function(result){
+      if(result.status === 'success' && result.media.length > 0){
+          console.log('DATA DARI GOOGLE SHEETS:', result.media);
+          console.log('KATEGORI TERPILIH:', selectedCategory);
+          console.log('MATERI TERPILIH:', selectedMaterial);
+        media = result.media.map(item => ({
+          id: item.id,
+          name: item.name,
+          subject: item.subject,
+          material: item.material,
+          category: item.category,
+          desc: item.desc || '',
+          url: item.url || '',
+          date: item.date,
+          html: '',
+          docId: '',
+          fileName: '',
+          upload: false
+        }));
+
+        store.set('media', media);
+        render();
+      }
+
+      delete window[callbackName];
+      script.remove();
+      resolve();
+    };
+
+    script.onerror = function(){
+      delete window[callbackName];
+      script.remove();
+      console.error('Gagal memuat database online');
+      resolve();
+    };
+
+    document.body.appendChild(script);
+  });
+}
