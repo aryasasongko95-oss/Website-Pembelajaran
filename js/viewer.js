@@ -387,6 +387,97 @@ history.pushState(
 
   /* ---------- File Online / Google Drive ---------- */
 
+/* ---------- WEB Online dari Google Drive ---------- */
+
+if (String(m.category || '').toUpperCase() === 'WEB') {
+
+  try {
+
+    if (!window.JSZip) {
+      throw new Error('JSZip belum dimuat');
+    }
+
+    if (typeof window.loadWebZip !== 'function') {
+      throw new Error('Fungsi loadWebZip tidak ditemukan');
+    }
+
+    toast('Mengambil paket WEB dari Google Drive...');
+
+    // Ambil ID file dari URL Google Drive
+    const match = String(m.url || '').match(
+      /\/d\/([a-zA-Z0-9_-]+)|[?&]id=([a-zA-Z0-9_-]+)/
+    );
+
+    const fileId = match && (match[1] || match[2]);
+
+    if (!fileId) {
+      throw new Error('ID file ZIP tidak ditemukan');
+    }
+
+    // Ambil ZIP dalam bentuk Base64
+    const base64 = await window.loadWebZip(fileId);
+
+    // Ekstrak isi ZIP
+    const zip = await JSZip.loadAsync(base64, {
+      base64: true
+    });
+
+    // Cari index.html
+    const indexPath = m.webIndexPath || 'index.html';
+    const indexFile = zip.file(indexPath);
+
+    if (!indexFile) {
+      throw new Error(
+        'index.html tidak ditemukan: ' + indexPath
+      );
+    }
+
+    // Baca HTML utama
+    const html = await indexFile.async('text');
+
+    console.log('Paket WEB berhasil diambil:', {
+      nama: m.name,
+      fileId,
+      indexPath,
+      jumlahFile: Object.keys(zip.files).length,
+      html
+    });
+
+    // Penanda sementara untuk pengujian
+    f.srcdoc = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+      </head>
+      <body style="font-family:Arial;padding:25px">
+        <h2>Paket WEB berhasil diambil</h2>
+        <p>ZIP berhasil dibaca dari Google Drive.</p>
+        <p>File utama: ${esc(indexPath)}</p>
+        <p>Langkah berikutnya adalah memuat seluruh aset website.</p>
+      </body>
+      </html>
+    `;
+
+    toast('Paket WEB berhasil diambil');
+
+  } catch (error) {
+
+    console.error('Gagal membuka paket WEB:', error);
+
+    f.srcdoc = `
+      <body style="font-family:Arial;padding:25px">
+        <h2>Gagal membuka media WEB</h2>
+        <p>${esc(error.message)}</p>
+      </body>
+    `;
+
+    toast('Gagal mengambil paket WEB', 'er');
+  }
+
+  return;
+}
+
 if (m.url) {
   f.removeAttribute('sandbox');
 

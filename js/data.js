@@ -95,36 +95,36 @@ window.loadOnlineMedia = function() {
           console.log('DATA DARI GOOGLE SHEETS:', result.media);
 const previousMedia = JSON.stringify(media);
           const onlineMedia = (result.media || []).map(item => ({
-            id: item.id,
-            name: item.name,
-            subject: item.subject,
-            material: item.material,
-            category: item.category,
-            desc: item.desc || '',
-            url: item.url || '',
-            downloadUrl: item.downloadUrl || '',
-            date: item.date,
-            html: '',
-            docId: '',
-            fileName: '',
-            upload: false
-          }));
+  id: item.id,
+  name: item.name,
+  subject: item.subject,
+  material: item.material,
+  category: item.category,
+  desc: item.desc || '',
+  url: item.url || '',
+  downloadUrl: item.downloadUrl || '',
+  webIndexPath: item.webIndexPath || '',
+  date: item.date,
+  html: '',
+  docId: '',
+  fileName: '',
+  upload: false
+}));
 
           const localMedia = media.filter(item => {
-            const category = String(
-              item.category || ''
-            ).toUpperCase();
+  const category = String(item.category || '').toUpperCase();
 
-            const isOnlineDocument =
-              ['PDF', 'PPT', 'PPTX', 'DOKUMEN'].includes(category) &&
-              (
-                item.url ||
-                item.downloadUrl ||
-                item.upload === false
-              );
+  const isOnlineDocument =
+    ['PDF', 'PPT', 'PPTX', 'DOKUMEN'].includes(category) &&
+    (item.url || item.downloadUrl || item.upload === false);
 
-            return !isOnlineDocument;
-          });
+  const isOnlineWeb =
+    category === 'WEB' &&
+    (item.url || item.downloadUrl) &&
+    item.upload === false;
+
+  return !isOnlineDocument && !isOnlineWeb;
+});
 
           const mediaMap = new Map();
 
@@ -201,4 +201,77 @@ if (
 
     document.body.appendChild(script);
   });
+};
+
+
+/* ---------- Ambil Paket WEB Online ---------- */
+
+window.loadWebZip = function(fileId) {
+
+  return new Promise((resolve, reject) => {
+
+    if (!fileId) {
+      reject(new Error('ID file ZIP tidak tersedia'));
+      return;
+    }
+
+    const script = document.createElement('script');
+
+    const callbackName =
+      'eduPediaZipCallback_' +
+      Date.now() +
+      '_' +
+      Math.random().toString(36).slice(2);
+
+    let timeout;
+
+    const cleanup = () => {
+      clearTimeout(timeout);
+      delete window[callbackName];
+      script.remove();
+    };
+
+    window[callbackName] = function(result) {
+
+      cleanup();
+
+      if (!result || result.status !== 'success') {
+        reject(
+          new Error(
+            result?.message || 'Gagal mengambil paket WEB'
+          )
+        );
+        return;
+      }
+
+      if (!result.base64) {
+        reject(new Error('Data ZIP kosong'));
+        return;
+      }
+
+      resolve(result.base64);
+    };
+
+    script.onerror = function() {
+      cleanup();
+      reject(new Error('Gagal menghubungi server ZIP'));
+    };
+
+    script.src =
+      'https://script.google.com/macros/s/AKfycbwcvSbavl3tjOuzfrhEYBB5WPwOceEz9Q3Uvp65HYVNe5A-0fZSAyZ1IT3MwgruPoPh7Q/exec' +
+      '?action=getWebZip' +
+      '&id=' + encodeURIComponent(fileId) +
+      '&callback=' + callbackName;
+
+    timeout = setTimeout(() => {
+      cleanup();
+      reject(new Error('Waktu pengambilan ZIP habis'));
+    }, 60000);
+
+    script.async = true;
+
+    document.body.appendChild(script);
+
+  });
+
 };

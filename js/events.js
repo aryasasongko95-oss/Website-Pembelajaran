@@ -43,6 +43,8 @@ async function uploadToGoogleDrive(file, mediaData) {
   const payload = {
     key: uploadKey,
     action: 'upload',
+    id: mediaData.id,
+webIndexPath: mediaData.webIndexPath,
     base64: base64,
     fileName: file.name,
     mimeType: file.type || 'application/octet-stream',
@@ -489,7 +491,9 @@ document.addEventListener('submit', async e => {
     const materialId = d.material;
 
     let category = 'WEB';
-    let html;
+let html = '';
+let webZipFile = null;
+let webIndexPath = '';
 
     /* ---------- Tentukan Kategori Dokumen ---------- */
 
@@ -526,87 +530,101 @@ document.addEventListener('submit', async e => {
       f.dataset.documentName = documentFile.name;
     }
 
-    /* ---------- Proses Folder WEB ---------- */
+    
+/* ---------- Proses Folder WEB ---------- */
 
-    if (files.length) {
+if (files.length) {
 
-      const main = files
-        .filter(x => /(^|\/)index\.html?$/i.test(x.webkitRelativePath))
-        .sort(
-          (a, b) =>
-            a.webkitRelativePath.length -
-            b.webkitRelativePath.length
-        )[0];
+  // Cari index.html utama
+  const main = files
+    .filter(x =>
+      /(^|\/)index\.html?$/i.test(x.webkitRelativePath)
+    )
+    .sort((a, b) =>
+      a.webkitRelativePath.length -
+      b.webkitRelativePath.length
+    )[0];
 
-      if (!main) {
-        toast('Folder tidak memiliki index.html', 'er');
-        return;
-      }
+  if (!main) {
+    toast('Folder tidak memiliki index.html', 'er');
+    return;
+  }
 
-      html = await main.text();
+  category = 'WEB';
 
-      category = 'WEB';
+  try {
 
-      /*
-        Mencari file berdasarkan relative path.
-        Menghapus ./ di awal path.
-      */
+    toast('Mengemas folder WEB menjadi ZIP...');
 
-      const find = p => {
-        const path = p.replace(/^\.\/+/, '');
+    const zip = new JSZip();
 
-        return files.find(x =>
-          x.webkitRelativePath.endsWith('/' + path) ||
-          x.webkitRelativePath === path
-        );
-      };
+    // Nama folder utama yang dipilih
+    const rootFolder = main.webkitRelativePath.split('/')[0];
 
-      /* ---------- Masukkan CSS ---------- */
+    // Simpan lokasi index.html di dalam ZIP
+    webIndexPath = main.webkitRelativePath
+      .split('/')
+      .slice(1)
+      .join('/');
 
-      html = html.replace(
-        /<link[^>]+href=["']([^"']+\.css)["'][^>]*>/gi,
-        (a, p) => {
-          const x = find(p);
+    // Masukkan seluruh file ke ZIP
+    for (const file of files) {
 
-          return x
-            ? '<style data-src="' + p + '">' +
-              '@@' + files.indexOf(x) + '@@' +
-              '</style>'
-            : a;
-        }
-      );
+      const relativePath = file.webkitRelativePath
+        .split('/')
+        .slice(1)
+        .join('/');
 
-      /* ---------- Ganti Placeholder CSS ---------- */
+      if (!relativePath) continue;
 
-      for (const m of [...html.matchAll(/@@(\d+)@@/g)]) {
-        html = html.replace(
-          m[0],
-          await files[+m[1]].text()
-        );
-      }
-
-      /* ---------- Masukkan JavaScript ---------- */
-
-      const js = [...html.matchAll(
-        /<script[^>]+src=["']([^"']+\.js)["'][^>]*><\/script>/gi
-      )];
-
-      for (const m of js) {
-        const x = find(m[1]);
-
-        if (x) {
-          html = html.replace(
-            m[0],
-            '<script>' +
-            (await x.text()).replace(
-              /<\/script/gi,
-              '<\\/script'
-            ) +
-            '<\/script>'
-          );
-        }
-      }
+      zip.file(relativePath, file);
     }
+
+    // Buat file ZIP
+    const zipBlob = await zip.generateAsync({
+      type: 'blob',
+      compression: 'DEFLATE',
+      compressionOptions: {
+        level: 6
+      }
+    });
+
+    // Maksimal 20 MB
+    if (zipBlob.size > 20 * 1024 * 1024) {
+      toast('Ukuran ZIP melebihi batas 20 MB', 'er');
+      return;
+    }
+
+    const zipName = (d.name.trim() || 'materi-web')
+      .replace(/[\\/:*?"<>|]/g, '-');
+
+    webZipFile = new File(
+      [zipBlob],
+      zipName + '.zip',
+      {
+        type: 'application/zip'
+      }
+    );
+
+    console.log('ZIP WEB berhasil dibuat:', {
+      nama: webZipFile.name,
+      ukuran: webZipFile.size,
+      jumlahFile: files.length,
+      indexPath: webIndexPath
+    });
+
+    toast('Folder WEB berhasil dikemas');
+
+  } catch (error) {
+
+    console.error('Gagal membuat ZIP WEB:', error);
+
+    toast('Gagal mengemas folder WEB', 'er');
+
+    return;
+  }
+}
+
 
     /* ---------- Validasi Kategori ---------- */
 
@@ -652,18 +670,27 @@ document.addEventListener('submit', async e => {
 
     /* ---------- Data Media ---------- */
 
-    const mediaData = {
-      name: d.name.trim(),
-      subject: d.subject,
-      material: materialId,
-      category,
-      desc: d.desc,
-      url: d.url.trim(),
-      docId: f.dataset.documentId || '',
-      fileName: f.dataset.documentName || '',
-      html,
-      upload: !!html
-    };
+    const mediaId = editing?.t === 'm'
+  ? editing.id
+  : 'm' + Date.now();
+
+const mediaData = {
+  id: mediaId,
+  name: d.name.trim(),
+  subject: d.subject,
+  material: materialId,
+  category,
+  desc: d.desc,
+  url: d.url.trim(),
+  docId: f.dataset.documentId || '',
+  fileName:
+    f.dataset.documentName ||
+    webZipFile?.name ||
+    '',
+  html: '',
+  webIndexPath,
+  upload: !!webZipFile
+};
 
     /* ---------- Upload Dokumen ---------- */
 
@@ -697,7 +724,32 @@ document.addEventListener('submit', async e => {
         return;
       }
     }
+/* ---------- Upload WEB ZIP ---------- */
 
+if (webZipFile) {
+  try {
+    toast('Mengirim paket WEB ke Google Drive...');
+
+    await uploadToGoogleDrive(webZipFile, mediaData);
+
+    console.log(
+      'Request upload WEB dikirim:',
+      webZipFile.name
+    );
+
+    toast('Permintaan upload WEB dikirim');
+
+  } catch (error) {
+    console.error('Upload WEB gagal:', error);
+
+    toast(
+      'Gagal mengirim paket WEB ke Google Drive',
+      'er'
+    );
+
+    return;
+  }
+}
     /* ---------- Simpan Media ---------- */
 
     if (editing?.t === 'm') {
@@ -718,13 +770,11 @@ document.addEventListener('submit', async e => {
 
     else {
 
-      media.push({
-        ...mediaData,
-        id: 'm' + Date.now(),
-        date: today(),
-        order: media.length
-      });
-
+media.push({
+  ...mediaData,
+  date: today(),
+  order: media.length
+});
       toast('Media ditambahkan');
     }
   }
