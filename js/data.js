@@ -95,60 +95,43 @@ window.loadOnlineMedia = function() {
 
           // Dokumen lokal tidak lagi dijadikan sumber utama.
           // Pertahankan media WEB dan media non-dokumen lokal.
-          const localMedia = media.filter(item => {
-            const isLocalDocument =
-              String(item.id).startsWith('m') &&
-              ['PDF', 'PPT', 'DOKUMEN'].includes(item.category);
+          // Hapus semua dokumen lokal.
+// Dokumen hanya diambil dari database online.
+const localMedia = media.filter(item => {
+  const category = String(item.category || '').toUpperCase();
 
-            return !isLocalDocument;
-          });
+  const isDocument = ['PDF', 'PPT', 'PPTX', 'DOKUMEN'].includes(category);
 
-          // Gabungkan media lokal dan database online.
-          const mediaMap = new Map();
+  return !isDocument;
+});
 
-          localMedia.forEach(item => {
-            mediaMap.set(item.id, item);
-          });
+// Gabungkan media lokal dan database online.
+const mediaMap = new Map();
 
-          onlineMedia.forEach(item => {
-            mediaMap.set(item.id, item);
-          });
+localMedia.forEach(item => {
+  mediaMap.set(item.id, item);
+});
 
-          media = Array.from(mediaMap.values());
+onlineMedia.forEach(item => {
+  mediaMap.set(item.id, item);
+});
 
-          store.set('media', media);
+media = Array.from(mediaMap.values());
 
-          console.log('MEDIA SETELAH SINKRONISASI:', media);
-          console.table(media.map(item => ({
-            id: item.id,
-            nama: item.name,
-            kategori: item.category
-          })));
+// Simpan hasil sinkronisasi ke penyimpanan lokal.
+store.set('media', media);
 
-          if (typeof render === 'function') {
-            render();
-          }
-        }
-      } catch (error) {
-        console.error('Sinkronisasi media gagal:', error);
-      }
+console.log('MEDIA SETELAH SINKRONISASI:', media);
 
-      delete window[callbackName];
-      script.remove();
-      resolve();
-    };
+console.table(media.map(item => ({
+  id: item.id,
+  nama: item.name,
+  kategori: item.category
+})));
 
-    script.onerror = function() {
-      delete window[callbackName];
-      script.remove();
-
-      console.error('Gagal memuat database online');
-      resolve();
-    };
-
-    document.body.appendChild(script);
-  });
-};
+if (typeof render === 'function') {
+  render();
+}
 
 // Muat database saat aplikasi dibuka.
 window.loadOnlineMedia();
