@@ -272,9 +272,11 @@ else if ('home' in d) {
   }
 
 else if (d.dm) {
+    console.log('TOMBOL HAPUS DIKLIK:', d.dm);
+  console.log('UPLOAD API:', uploadAPI);
   if (confirm('Hapus media ini?')) {
     const target = media.find(m => m.id === d.dm);
-
+console.log('TARGET HAPUS:', target);
     if (!target) {
       toast('Media tidak ditemukan', 'er');
       return;
