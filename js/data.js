@@ -45,6 +45,7 @@ let isAdmin = store.get('admin', false);
 const htmlOf = m => m.html || sampleHtml(m.name);
 
 const persist = () => {
+  loadOnlineMedia()
   store.set('subjects', subjects);
   store.set('materials', materials);
   store.set('media', media);
