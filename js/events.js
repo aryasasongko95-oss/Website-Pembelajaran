@@ -2,11 +2,12 @@
 
 /* ---------- Konfigurasi Upload ---------- */
 
-window.EDU_PEDIA_API =
+/* ---------- Konfigurasi Upload ---------- */
+
+const uploadAPI =
   'https://script.google.com/macros/s/AKfycbwcvSbavl3tjOuzfrhEYBB5WPwOceEz9Q3Uvp65HYVNe5A-0fZSAyZ1IT3MwgruPoPh7Q/exec';
 
-window.EDU_PEDIA_UPLOAD_KEY = 'EduPediaUpload2026';
-
+const uploadKey = 'EduPediaUpload2026';
 /* ---------- Konversi File ---------- */
 
 function fileToBase64(file) {
@@ -25,13 +26,15 @@ function fileToBase64(file) {
 
 /* ---------- Upload Google Drive ---------- */
 
+/* ---------- Upload Google Drive ---------- */
+
 async function uploadToGoogleDrive(file, mediaData) {
   const base64 = await fileToBase64(file);
 
   const payload = {
-    key: window.EDU_PEDIA_UPLOAD_KEY,
+    key: uploadKey,
     action: 'upload',
-    base64,
+    base64: base64,
     fileName: file.name,
     mimeType: file.type || 'application/octet-stream',
     name: mediaData.name,
@@ -42,8 +45,10 @@ async function uploadToGoogleDrive(file, mediaData) {
   };
 
   console.log('Mengirim file ke Google Apps Script:', file.name);
+  console.log('Ukuran file:', file.size);
+  console.log('Kategori:', mediaData.category);
 
-  return fetch(window.EDU_PEDIA_API, {
+  return fetch(uploadAPI, {
     method: 'POST',
     mode: 'no-cors',
     headers: {
