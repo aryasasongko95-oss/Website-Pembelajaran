@@ -39,11 +39,7 @@ async function openMedia(id) {
   v.className = 'viewer';
   v.id = 'viewer';
   v.dataset.id = m.id;
-history.pushState(
-  { edupediaViewer: true },
-  '',
-  location.href
-);
+
   addRecent(m.id);
 
   store.set('lastMedia', m.id);
@@ -91,7 +87,11 @@ history.pushState(
   `;
 
   document.body.append(v);
-
+history.pushState(
+  { edupediaViewer: true },
+  '',
+  location.href
+);
   const f = $('iframe', v);
 
 
