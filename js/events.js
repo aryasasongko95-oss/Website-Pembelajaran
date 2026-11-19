@@ -271,16 +271,45 @@ else if ('home' in d) {
     }
   }
 
-  else if (d.dm) {
-    if (confirm('Hapus media ini?')) {
-      media = media.filter(m => m.id !== d.dm);
-      favs = favs.filter(x => x !== d.dm);
+else if (d.dm) {
+  if (confirm('Hapus media ini?')) {
+    const target = media.find(m => m.id === d.dm);
 
-      persist();
-      toast('Media dihapus');
-      render();
+    if (!target) {
+      toast('Media tidak ditemukan', 'er');
+      return;
     }
+
+    // Hapus dari database online jika memiliki ID online
+    if (!String(target.id).startsWith('m')) {
+      try {
+        await fetch(uploadAPI, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: {
+            'Content-Type': 'text/plain;charset=utf-8'
+          },
+          body: JSON.stringify({
+            key: uploadKey,
+            action: 'delete',
+            id: target.id
+          })
+        });
+      } catch (error) {
+        console.error('Gagal mengirim permintaan hapus:', error);
+        toast('Gagal mengirim permintaan hapus', 'er');
+        return;
+      }
+    }
+
+    media = media.filter(m => m.id !== d.dm);
+    favs = favs.filter(x => x !== d.dm);
+
+    persist();
+    toast('Permintaan penghapusan dikirim');
+    render();
   }
+}
 
   else if (d.mv) {
     const [id, dir] = d.mv.split(':');
