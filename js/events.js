@@ -1,5 +1,15 @@
 /* EduPedia - Event klik/input/submit, pintasan keyboard, dan inisialisasi */
+/* ---------- Riwayat Navigasi EduPedia ---------- */
 
+function pushEduPediaHistory() {
+  history.pushState({
+    edupediaNavigation: true,
+    view,
+    sel,
+    selectedMaterial,
+    selectedCategory
+  }, '', location.href);
+}
 /* ---------- Konfigurasi Upload ---------- */
 
 /* ---------- Konfigurasi Upload ---------- */
@@ -90,7 +100,9 @@ document.addEventListener('click', e => {
     selectedCategory = d.category;
     view = 'category';
 
-    store.set('lastNavigation', {
+pushEduPediaHistory();
+    
+store.set('lastNavigation', {
       view,
       sel,
       selectedMaterial,
@@ -841,6 +853,13 @@ if (lastNavigation) {
     selectedCategory = lastNavigation.selectedCategory;
   }
 }
+history.replaceState({
+  edupediaNavigation: true,
+  view,
+  sel,
+  selectedMaterial,
+  selectedCategory
+}, '', location.href);
 
 /* ---------- Render Awal ---------- */
 

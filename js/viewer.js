@@ -407,10 +407,10 @@ if (m.category === 'PPT') {
     }
   }
 
-  if (downloadUrl) {
-    window.location.href = downloadUrl;
-    return;
-  }
+if (downloadUrl) {
+  f.src = downloadUrl;
+  return;
+}
 }
 
   const previewUrl = getDrivePreviewUrl(m.url);
@@ -470,10 +470,39 @@ const closeViewer = (fromHistory = false) => {
     }
   }
 };
-window.addEventListener('popstate', () => {
-  console.log('POPSTATE TERPANGGIL');
+window.addEventListener('popstate', (event) => {
 
+  // Jika sedang membuka media, tutup viewer dahulu
   if ($('#viewer')) {
     closeViewer(true);
+    return;
   }
+
+  // Jika sedang berada di menu EduPedia
+  const state = event.state;
+
+  if (state?.edupediaNavigation) {
+
+    view = state.view || 'dashboard';
+    sel = state.sel || null;
+
+    selectedMaterial = state.selectedMaterial || null;
+    selectedCategory = state.selectedCategory || null;
+
+    q = '';
+    flt = '';
+    editing = null;
+
+    store.set('lastNavigation', {
+      view,
+      sel,
+      selectedMaterial,
+      selectedCategory
+    });
+
+    render();
+    pageIn();
+    scrollTo(0, 0);
+  }
+
 });
