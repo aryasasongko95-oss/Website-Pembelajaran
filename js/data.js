@@ -98,14 +98,15 @@ window.loadOnlineMedia = function() {
           // Hapus semua dokumen lokal.
 // Dokumen hanya diambil dari database online.
 const localMedia = media.filter(item => {
-  const category = String(item.category || '').toUpperCase();
+  const isLocalDocument =
+    String(item.id).startsWith('m') &&
+    ['PDF', 'PPT', 'DOKUMEN'].includes(item.category) &&
+    !item.url;
 
-  const isDocument = ['PDF', 'PPT', 'PPTX', 'DOKUMEN'].includes(category);
-
-  return !isDocument;
+  return !isLocalDocument;
 });
 
-// Gabungkan media lokal dan database online.
+// Gabungkan data lokal dan online berdasarkan ID.
 const mediaMap = new Map();
 
 localMedia.forEach(item => {
@@ -113,21 +114,19 @@ localMedia.forEach(item => {
 });
 
 onlineMedia.forEach(item => {
-  mediaMap.set(item.id, item);
+  const localItem = mediaMap.get(item.id);
+
+  mediaMap.set(item.id, {
+    ...localItem,
+    ...item
+  });
 });
 
 media = Array.from(mediaMap.values());
 
-// Simpan hasil sinkronisasi ke penyimpanan lokal.
 store.set('media', media);
 
-console.log('MEDIA SETELAH SINKRONISASI:', media);
-
-console.table(media.map(item => ({
-  id: item.id,
-  nama: item.name,
-  kategori: item.category
-})));
+console.log('MEDIA FINAL:', media);
 
 if (typeof render === 'function') {
   render();
