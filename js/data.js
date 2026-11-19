@@ -71,7 +71,7 @@ window.loadOnlineMedia = function() {
   'https://script.google.com/macros/s/AKfycbwcvSbavl3tjOuzfrhEYBB5WPwOceEz9Q3Uvp65HYVNe5A-0fZSAyZ1IT3MwgruPoPh7Q/exec' +
   '?action=list&callback=' + callbackName +
   '&nocache=' + Date.now();
-  
+
     window[callbackName] = function(result) {
       try {
         if (result && result.status === 'success') {
@@ -93,13 +93,13 @@ window.loadOnlineMedia = function() {
             upload: false
           }));
 
-          const localMedia = media.filter(item => {
-  const category = String(item.category || '').toUpperCase();
+         const localMedia = media.filter(item => {
+  const isLocalDocument =
+    String(item.id).startsWith('m') &&
+    ['PDF', 'PPT', 'DOKUMEN'].includes(item.category) &&
+    !item.url;
 
-  const isDocument =
-    ['PDF', 'PPT', 'PPTX', 'DOKUMEN'].includes(category);
-
-  return !isDocument;
+  return !isLocalDocument;
 });
 
           const mediaMap = new Map();
