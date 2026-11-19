@@ -93,7 +93,7 @@ window.loadOnlineMedia = function() {
         if (result && result.status === 'success') {
 
           console.log('DATA DARI GOOGLE SHEETS:', result.media);
-
+const previousMedia = JSON.stringify(media);
           const onlineMedia = (result.media || []).map(item => ({
             id: item.id,
             name: item.name,
@@ -141,24 +141,30 @@ window.loadOnlineMedia = function() {
             });
           });
 
-          media = Array.from(mediaMap.values());
+media = Array.from(mediaMap.values());
 
-          store.set('media', media);
+store.set('media', media);
 
-          console.log(
-            'MEDIA SETELAH SINKRONISASI:',
-            media
-          );
+console.log(
+  'MEDIA SETELAH SINKRONISASI:',
+  media
+);
 
-          console.table(media.map(item => ({
-            id: item.id,
-            nama: item.name,
-            kategori: item.category
-          })));
+console.table(media.map(item => ({
+  id: item.id,
+  nama: item.name,
+  kategori: item.category
+})));
 
-          if (typeof render === 'function') {
-            render();
-          }
+const changed = previousMedia !== JSON.stringify(media);
+
+if (
+  changed &&
+  typeof render === 'function' &&
+  !document.querySelector('#fm:not([hidden])')
+) {
+  render();
+}
 
         } else {
           console.error(

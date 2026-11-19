@@ -958,3 +958,10 @@ loading(async () => {
 
   render();
 });
+
+// Sinkronisasi media online otomatis setiap 10 detik
+setInterval(() => {
+  if (typeof window.loadOnlineMedia === 'function') {
+    window.loadOnlineMedia();
+  }
+}, 10000);
