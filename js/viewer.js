@@ -39,7 +39,13 @@ async function openMedia(id) {
   v.className = 'viewer';
   v.id = 'viewer';
   v.dataset.id = m.id;
-
+if (!history.state?.edupediaViewer) {
+  history.pushState(
+    { edupediaViewer: true },
+    '',
+    location.href
+  );
+}
   addRecent(m.id);
 
   store.set('lastMedia', m.id);
@@ -447,26 +453,25 @@ if (m.category === 'PPT') {
 
 /* ---------- Tutup Viewer ---------- */
 
-const closeViewer = () => {
-
+const closeViewer = (fromHistory = false) => {
   const v = $('#viewer');
 
   if (v) {
-
     if (v.dataset.objectUrl) {
-
-      URL.revokeObjectURL(
-        v.dataset.objectUrl
-      );
-
+      URL.revokeObjectURL(v.dataset.objectUrl);
     }
 
     store.set('lastMedia', null);
-
     v.remove();
-
     render();
 
+    if (!fromHistory && history.state?.edupediaViewer) {
+      history.back();
+    }
   }
-
 };
+window.addEventListener('popstate', () => {
+  if ($('#viewer')) {
+    closeViewer(true);
+  }
+});
