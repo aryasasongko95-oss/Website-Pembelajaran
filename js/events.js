@@ -845,18 +845,5 @@ if (lastNavigation) {
 /* ---------- Render Awal ---------- */
 
 loading(async () => {
-
   render();
-
-  const lastMedia = store.get(
-    'lastMedia',
-    null
-  );
-
-  if (
-    lastMedia &&
-    media.some(m => m.id === lastMedia)
-  ) {
-    await openMedia(lastMedia);
-  }
 });
