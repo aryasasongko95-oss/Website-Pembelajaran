@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>EduPedia</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body class="side">
+<header class="top">
+  <div class="logo"><span aria-hidden="true">◉</span>EDUPEDIA</div>
+<span class="vr"></span>
+
+<button class="btn s" type="button" data-go="dashboard">
+  Beranda
+</button>
+
+<button class="ic" id="tg" aria-label="Tampilkan atau sembunyikan sidebar">◫</button>
+  
+  <span class="ttl" id="ttl">Dashboard</span>
+  <span class="sp"></span>
+  <button class="ic" id="th" aria-label="Ganti tema">☾</button>
+  <div class="prof">
+    <button class="ic" id="pf" aria-label="Profil" style="background:#4a4a4a;border-radius:50%;font-weight:600;font-size:13px;color:#fff">US</button>
+    <div class="menu" id="pm">
+      <div class="mut" style="padding:6px 10px" id="who"></div>
+      <button id="adm"></button>
+    </div>
+  </div>
+</header>
+<aside id="side"></aside><div id="bd" data-bd></div>
+<main id="app"></main>
+<div id="toast"></div>
+
+<script src="js/store.js"></script>
+<script src="js/data.js"></script>
+<script src="js/state.js"></script>
+<script src="js/components.js"></script>
+<script src="js/pages.js"></script>
+<script src="https://unpkg.com/jszip/dist/jszip.min.js"></script>
+<script src="https://unpkg.com/docx-preview/dist/docx-preview.min.js"></script>
+<script src="js/viewer.js"></script>
+<script src="js/render.js"></script>
+<script src="js/documents.js"></script>
+<script src="js/events.js"></script>
+</body>
+</html>

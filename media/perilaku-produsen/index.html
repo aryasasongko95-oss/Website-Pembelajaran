@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="theme-color" content="#070708">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Perilaku Produsen – Media Pembelajaran</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div id="gate">
+ <div class="gate-in">
+  <div class="badge">MEDIA PEMBELAJARAN EKONOMI</div>
+  <div class="gate-ic">🏭</div>
+  <h1>Perilaku Produsen</h1>
+  <p>Belajar menghitung biaya, penerimaan, keuntungan, dan titik impas lewat contoh usaha roti.</p>
+  <button class="btn" onclick="masuk()">Masuk →</button>
+ </div>
+</div>
+
+<div class="bg"><i></i><i></i><i></i></div>
+<header><span class="logo">🏭 Perilaku Produsen</span>
+<nav>
+<button class="on" id="n-home" onclick="show('home')">01 Beranda</button>
+<button id="n-materi" onclick="show('materi')">02 Materi &amp; Contoh Soal</button>
+<button id="n-spinner" onclick="show('spinner')">03 Tugas</button>
+<button id="n-kesimpulan" onclick="show('kesimpulan')">04 Kesimpulan</button>
+</nav></header>
+<main>
+
+<section id="home" class="page on">
+<div class="hero"><span class="coin" style="right:8%;top:14%">🪙</span><span class="coin" style="right:20%;bottom:12%;animation-delay:-2s">🍞</span><span class="coin" style="right:4%;bottom:30%;animation-delay:-3.5s">📈</span>
+<div class="badge">MEDIA PEMBELAJARAN EKONOMI</div><h1>Perilaku Produsen</h1>
+<p>Produsen perlu tahu berapa biaya yang dikeluarkan, berapa uang yang diterima, dan kapan usahanya mulai untung.</p>
+</div>
+<div class="info rv"><strong>Tujuan Pembelajaran</strong>
+<ul><li>Menjelaskan perilaku produsen dan faktor produksi.</li>
+<li>Menghitung biaya produksi (TFC, TVC, TC) dan penerimaan (TR).</li>
+<li>Menghitung keuntungan dan titik impas (BEP).</li></ul></div>
+<div class="warn rv"><strong>Perilaku produsen</strong> adalah cara produsen mengambil keputusan dalam produksi, yaitu apa yang dibuat, berapa banyak, dan bagaimana membuatnya, agar usahanya untung.</div>
+<div class="st rv" style="margin-top:26px"><h2 style="font-size:1.4rem">Faktor Produksi</h2></div>
+<div class="grid">
+<div class="card rv"><div class="ic">🌾</div><h3>Sumber Daya Alam</h3><p>Gandum, telur, gula.</p></div>
+<div class="card rv"><div class="ic">👩‍🍳</div><h3>Tenaga Kerja</h3><p>Pembuat roti, penjaga toko.</p></div>
+<div class="card rv"><div class="ic">🔧</div><h3>Modal</h3><p>Uang, oven, mixer.</p></div>
+<div class="card rv"><div class="ic">💡</div><h3>Kewirausahaan</h3><p>Pemilik yang mengatur usaha dan menanggung risiko.</p></div>
+</div>
+<button class="btn" onclick="show('materi')">Mulai Pembelajaran →</button>
+</section>
+
+<section id="materi" class="page">
+<div class="st"><h2>Materi &amp; Contoh Soal</h2><p></p></div>
+<div class="box rv"><h3>1. Biaya Produksi</h3>
+<p>Biaya produksi adalah semua uang yang dikeluarkan produsen untuk membuat barang. Biaya ini dibagi menjadi biaya tetap dan biaya variabel.</p>
+<div class="grid">
+<div class="card"><div class="ic">🏠</div><h3>Biaya Tetap (TFC)</h3><p>Biaya yang tidak berubah meskipun jumlah produksi berubah. Contoh: sewa kios, penyusutan oven, gaji tetap.</p><div class="f">TFC = jumlah seluruh biaya tetap</div></div>
+<div class="card"><div class="ic">🥣</div><h3>Biaya Variabel per Unit (AVC)</h3><p>Biaya variabel yang dikeluarkan untuk membuat satu unit barang, misalnya bahan untuk satu roti. Dipakai untuk menghitung TVC dan BEP.</p><div class="f">AVC = TVC ÷ Q</div></div>
+<div class="card"><div class="ic">🥚</div><h3>Biaya Variabel (TVC)</h3><p>Biaya yang berubah mengikuti jumlah produksi. Makin banyak barang yang dibuat, makin besar biayanya. Contoh: tepung, telur, mentega, kemasan.</p><div class="f">TVC = AVC × Q</div></div>
+<div class="card"><div class="ic">🏷️</div><h3>Total Biaya (TC)</h3><p>Seluruh biaya produksi, yaitu biaya tetap ditambah biaya variabel.</p><div class="f">TC = TFC + TVC</div></div>
+</div></div>
+
+<div class="box rv"><h3>2. Penerimaan (TR)</h3>
+<p>Penerimaan atau Total Revenue (TR) adalah seluruh uang yang diterima produsen dari hasil penjualan barang. Besarnya bergantung pada harga jual (P) dan jumlah barang yang terjual (Q).</p>
+<div class="f">TR = P × Q</div>
+<div class="info">TR bukan keuntungan, karena uang penerimaan belum dikurangi biaya produksi.</div></div>
+
+<div class="box rv"><h3>3. Keuntungan</h3>
+<p>Keuntungan adalah sisa uang yang diperoleh usaha setelah penerimaan dikurangi seluruh biaya produksi.</p>
+<div class="f">Keuntungan = TR − TC</div>
+<div class="tw"><div class="rg"><div><small>TR &gt; TC</small><strong style="color:var(--ok)">Untung</strong></div><div><small>TR = TC</small><strong>Impas</strong></div><div><small>TR &lt; TC</small><strong style="color:var(--no)">Rugi</strong></div></div></div></div>
+
+<div class="box rv"><h3>4. Break Even Point (BEP)</h3>
+<p>Break Even Point (BEP) atau titik impas adalah kondisi ketika usaha tidak untung dan tidak rugi, yaitu saat TR sama dengan TC. Jumlah barang yang terjual pada kondisi ini disebut BEP unit.</p>
+<div class="f">BEP unit = TFC ÷ (Harga jual − AVC)</div>
+<p style="margin-top:10px">Selisih harga jual dan AVC adalah sisa uang dari setiap barang yang dipakai untuk menutup biaya tetap.</p>
+<div class="tw"><div class="rg"><div><small>Terjual &lt; BEP</small><strong style="color:var(--no)">Rugi</strong></div><div><small>Terjual = BEP</small><strong>Impas</strong></div><div><small>Terjual &gt; BEP</small><strong style="color:var(--ok)">Untung</strong></div></div></div></div>
+
+
+<div class="st rv" style="margin-top:30px"><h2 style="font-size:1.4rem">Contoh Soal</h2><p></p></div>
+<div class="box rv" style="margin-top:0">
+<h3>Usaha Roti</h3>
+<p>Seorang pengusaha membuat dan menjual <strong>100 roti</strong>. Hitunglah TVC, TC, TR, keuntungan, dan BEP unit-nya.</p>
+<div class="rg">
+<div><small>TFC (biaya tetap)</small><strong>Rp200.000</strong></div>
+<div><small>AVC (biaya variabel per roti)</small><strong>Rp3.000</strong></div>
+<div><small>Harga jual (P)</small><strong>Rp10.000</strong></div>
+<div><small>Produksi (Q)</small><strong>100 roti</strong></div>
+</div>
+<div id="steps"></div>
+<button class="btn" id="stepBtn" onclick="nextStep()"></button><button class="btn sec" onclick="resetSteps()">↺ Ulangi</button>
+</div>
+<button class="btn" onclick="show('spinner')">Tugas →</button>
+</section>
+
+<section id="spinner" class="page">
+<div class="st"><h2>Tugas</h2><p></p></div>
+<div class="box"><h3>Tugas Kelompok: Merencanakan Usaha</h3>
+<ol class="tugas">
+<li>Tentukan nama dan jenis usaha yang akan dijalankan.</li>
+<li>Tentukan contoh biaya tetap atau TFC, seperti sewa tempat dan peralatan.</li>
+<li>Tentukan contoh biaya variabel atau TVC, seperti bahan baku dan kemasan.</li>
+<li>Hitung total biaya produksi atau TC.</li>
+<li>Tentukan harga jual dan jumlah barang yang diperkirakan terjual, kemudian hitung TR.</li>
+<li>Hitung keuntungan atau profit.</li>
+<li>Hitung BEP untuk mengetahui minimal jumlah barang yang harus terjual agar usaha mencapai titik impas.</li>
+</ol></div>
+<div class="box"><h3>✅ Cek Tugas</h3>
+<p style="color:var(--mu);margin:0 0 4px"></p>
+<h4 class="ct">1. Data usahamu <small style="color:var(--mu);font-weight:400">(geser slider atau ketik angkanya)</small></h4>
+<div class="cg">
+<div class="fl"><span>TFC (biaya tetap)</span><input class="ci" id="cF" placeholder="mis. 200.000" inputmode="decimal" autocomplete="off"><input type="range" id="rF" min="0" max="1000000" step="10000" value="0" aria-label="TFC (biaya tetap)"></div>
+<div class="fl"><span>AVC (biaya variabel per unit)</span><input class="ci" id="cA" placeholder="mis. 3.000" inputmode="decimal" autocomplete="off"><input type="range" id="rA" min="0" max="10000" step="100" value="0" aria-label="AVC (biaya variabel per unit)"></div>
+<div class="fl"><span>Harga jual (P)</span><input class="ci" id="cP" placeholder="mis. 10.000" inputmode="decimal" autocomplete="off"><input type="range" id="rP" min="0" max="20000" step="100" value="0" aria-label="Harga jual (P)"></div>
+<div class="fl"><span>Jumlah terjual (Q)</span><input class="ci" id="cQ" placeholder="mis. 100" inputmode="decimal" autocomplete="off"><input type="range" id="rQ" min="0" max="300" step="1" value="0" aria-label="Jumlah terjual (Q)"></div>
+</div>
+<div class="cv" style="margin-top:16px"><canvas id="ch"></canvas></div>
+<div id="cRes"></div>
+<div id="cSum" style="margin-top:14px;font-weight:700;min-height:1.5em"></div>
+<button class="btn" onclick="cekTugas()">Lihat Hasil</button><button class="btn sec" onclick="resetCek()">Reset</button>
+</div>
+<div id="spBox"></div>
+<button class="btn" onclick="show('kesimpulan')">Kesimpulan →</button>
+</section>
+
+<section id="kesimpulan" class="page">
+<div class="concl"><h2>Kesimpulan</h2>
+<p>Perilaku produsen merupakan cara produsen dalam mengelola kegiatan produksi untuk memperoleh keuntungan secara optimal. Produsen perlu memahami berbagai jenis biaya, seperti biaya tetap (TFC) dan biaya variabel (TVC), untuk menghitung total biaya produksi (TC). Produsen juga perlu mengetahui total penerimaan (TR), keuntungan, serta titik impas atau Break Even Point (BEP).</p>
+<p>Melalui perhitungan tersebut, produsen dapat memperkirakan biaya yang dibutuhkan, menentukan jumlah produksi, menetapkan harga jual, dan mengetahui apakah usaha yang dijalankan memperoleh keuntungan atau mengalami kerugian. Oleh karena itu, pemahaman mengenai biaya produksi, penerimaan, keuntungan, dan BEP sangat penting dalam mengambil keputusan serta menjalankan usaha secara efektif.</p>
+<div class="final"><strong>Pesan utama:</strong><br><br>Produsen yang baik menghitung <strong>biaya, penerimaan, keuntungan, dan titik impas</strong> sebelum menentukan berapa banyak yang diproduksi.</div>
+</section>
+</main>
+<footer>© Perilaku Produsen – media pembelajaran interaktif</footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/canvas-confetti/1.9.3/confetti.browser.min.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
